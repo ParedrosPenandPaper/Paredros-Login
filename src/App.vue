@@ -1,49 +1,50 @@
 <template>
   <div id="app">
 
-    <div id="title">
-      <label id="welcome-label">Welcome to <label id="project-label">Project</label></label>
-      <label id="paredros-label">Paredros</label>
-    </div>
+    <h1 id="title">Login</h1>
 
-    <div class="routing-panel" id="auth-container" @click="redirectTo('https://paredros-login/')">
-      <p id="auth-paragraph">login</p>
-    </div>
+    <input class="panel text-input" type="text" placeholder="username" v-model="username"/>
 
-    <div id="routing-panel-container">
-      <div id="creator-panel " class="routing-panel sized-routing-panel" @click="redirectTo('https://paredros-creator/')">
-        <p class="routing-panel-paragraph">creator</p>
-      </div>
-      <div id="store-panel" class="routing-panel sized-routing-panel" @click="redirectTo('https://paredros-store/')">
-        <p class="routing-panel-paragraph">store</p>
-      </div>
-      <div id="player-panel" class="routing-panel sized-routing-panel" @click="redirectTo('https://paredros-player/')">
-        <p class="routing-panel-paragraph">player</p>
-      </div>
-    </div>
+    <input class="panel text-input" type="password" placeholder="password" v-model="password"/>
+
+    <input class="panel" id="submit-button" type="submit" value="submit" @click="onSubmit"/>
 
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'app',
+  data: function() {
+    return {
+      username: '',
+      password: '',
+      userExists: false
+    }
+  },
   methods: {
-    redirectTo: function(url) {
-      window.location.href = url
+    onSubmit() {
+      axios.post(`/login?user=${this.username}&password=${this.password}`)
+        .finally(() => {
+          this.username = ''
+          this.password = ''
+        })
     }
   }
 }
 </script>
 
 <style>
-#app {
+#app{
   width: 100%;
   height: 100%;
-
+  
   display: flex;
-  flex-flow: column nowrap;
+  flex-flow: column;
   justify-content: center;
+  align-items: center;
 
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -53,83 +54,38 @@ export default {
 }
 
 #title{
-  width: 100%;
-  height: 30%;
-
-  display: flex;
-  flex-flow: column nowrap;
-  justify-content: center;
-  align-items: center;
-}
-
-#welcome-label{
-  font-size: 2em;
-}
-
-#project-label{
   font-size: 2.5em;
 }
 
-#paredros-label{
-  font-size: 7em;
-}
-
-#auth-container{
-  position: absolute;
-  top: 0;
-  right: 0;
-
-  margin: 2vw;
-}
-
-#auth-paragraph{
-  margin: 1vh 1vw;
-  font-size: 1.5em;
-}
-
-#routing-panel-container{
-  width: 100%;
-
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-evenly;
-  justify-items: center;
-}
-
-.sized-routing-panel{
-  width: 10vw;
-  height: 10vw;
-  min-width: 100px;
-  min-height: 100px;
-
-  margin: 50px;
-}
-
-.routing-panel{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  background-color: #f2f2f2;
-  border: 2px solid #d9d9d9;
-  border-radius: 10%;
+#submit-button{
+  width: 10em;
+  padding: 0;
 
   cursor: pointer;
 }
 
-.routing-panel:hover{
-  /* background-color: #a3c2db; */
+#submit-button:hover{
   background-image: radial-gradient(#c8daea, #6c9dc6);
   border-color: #6c9dc6;
 }
 
-.routing-panel:active{
-  background-color: steelblue;
+.panel{
+  width: 20em;
+  height: 2.5em;
+
+  margin: 1em;
+  padding: 0 0 0 1em;
+
+  font-size: 1.2em;
+
+  border: 2px solid #d9d9d9;
+  border-radius: 0.8em;
+  outline-style: none;
+
+  background-color: #f2f2f2;
 }
 
-.routing-panel-paragraph{
-  margin: 0;
-  font-size: 2em;
-  color: black;
+.text-input:focus{
+  background-color: #d9d9d9;
 }
 </style>
