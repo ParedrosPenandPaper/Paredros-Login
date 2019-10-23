@@ -22,6 +22,6 @@ vue-build:
 
 docker-build:
   stage: docker-build
-  script: docker build -t paredros-gateway .
+  script: docker build -t paredros-login .
   tags:
     - deploy
