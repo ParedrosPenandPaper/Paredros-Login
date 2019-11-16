@@ -2,5 +2,5 @@
 
 ## Project setup
 ```
-docker run -d -e VIRTUAL_HOST=login.it-projekt19-6.informatik.fh-nuernberg.de --network paredros-net --name paredros-login paredros-login
+docker run -d -p 8083:80 --network paredros-net --name paredros-login paredros-login
 ```
