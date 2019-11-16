@@ -26,7 +26,8 @@ export default {
   },
   methods: {
     onSubmit() {
-      axios.post(`/login?user=${this.username}&password=${this.password}`)
+      // axios.post(`/login?user=${this.username}&password=${this.password}`)
+      axios.post('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/login')
         .finally(() => {
           this.username = ''
           this.password = ''
