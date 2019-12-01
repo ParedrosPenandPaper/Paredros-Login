@@ -1,7 +1,9 @@
 <template>
   <div id="app">
 
-    <h1 id="title">Login</h1>
+    <h1 id="title">Registration</h1>
+
+    <input class="panel text-input" type="text" placeholder="email" v-model="email"/> 
 
     <input class="panel text-input" type="text" placeholder="username" v-model="username"/>
 
@@ -13,12 +15,13 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { SHA256 } from "crypto-js";
 
-export default {
+export default{
   name: 'app',
   data: function() {
     return {
+      email : '',
       username: '',
       password: '',
       userExists: false
@@ -26,12 +29,30 @@ export default {
   },
   methods: {
     onSubmit() {
-      // axios.post(`/login?user=${this.username}&password=${this.password}`)
-      axios.post('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/login')
-        .finally(() => {
-          this.username = ''
-          this.password = ''
-        })
+
+      const userAction = async () => {
+      var salt = (Math.random()*123456789).toString();
+      var hashedpassword =  SHA256(this.password + salt).toString();
+      const response = await fetch('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          "username": this.username,
+          "hashedpassword": hashedpassword,
+          "email": this.email,
+          "salt": salt
+        }
+      });
+      let text = await response.text();
+      return text;
+    }
+    let registerResponse = userAction();
+    /* eslint-disable no-console */
+    console.log(this.email)
+    console.log(this.username)
+    console.log(this.password)
+    console.log(registerResponse)
+    /* eslint-disable no-console */
     }
   }
 }
