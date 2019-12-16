@@ -1,21 +1,29 @@
 <template>
   <div id="app">
-
-    <h1 id="title">Registration</h1>
-
-    <input class="panel text-input" type="text" placeholder="email" v-model="email"/> 
-
-    <input class="panel text-input" type="text" placeholder="username" v-model="username"/>
-
-    <input class="panel text-input" type="password" placeholder="password" v-model="password"/>
-
-    <input class="panel" id="submit-button" type="submit" value="submit" @click="onSubmit"/>
-
+    <div id="form" v-if="!loggedIn&&registration">
+     <h1 id="title">Registration</h1>
+      <input class="panel text-input" type="text" placeholder="email" v-model="email"/> 
+      <input class="panel text-input" type="text" placeholder="username" v-model="username"/>
+      <input class="panel text-input" type="password" placeholder="password" v-model="password"/>
+      <input class="panel" id="submit-button" type="submit" value="submit" @click="onSubmitRegistratiom"/>
+      <button v-on:click='registration = !registration'>Login</button>
+    </div>
+    <div id="form" v-else-if="!loggedIn&&!registration">
+      <h1 id="title">Login</h1>
+      <input class="panel text-input" type="text" placeholder="email" v-model="email"/> 
+      <input class="panel text-input" type="password" placeholder="password" v-model="password"/>
+      <input class="panel" id="submit-button" type="submit" value="submit" @click="onSubmitLogin"/>
+      <button v-on:click='registration = !registration'>Registration</button>
+    </div>
+    <div v-else-if="loggedIn">
+      
+    </div>
   </div>
 </template>
 
 <script>
 import { SHA256 } from "crypto-js";
+import * as jwt from 'jsonwebtoken';
 
 export default{
   name: 'app',
@@ -24,16 +32,55 @@ export default{
       email : '',
       username: '',
       password: '',
-      userExists: false
+      loggedIn: false,
+      token: '', 
+      registration: false
     }
   },
   methods: {
-    onSubmit() {
-
-      const userAction = async () => {
+    onSubmitLogin() {
+      fetch('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/api/auth/salt', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "email": this.email
+        }
+      })
+      .then(response => response.json())
+        .then(salt => {
+          /* eslint-disable no-console */
+          console.log(salt.salt)
+          /* eslint-disable no-console */
+          var hashedpassword =  SHA256(this.password + salt.salt).toString();
+          return hashedpassword;
+        })
+         .then(hashedpassword => {
+            return fetch('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/api/auth/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                "hashedpassword": hashedpassword,
+                "email": this.email,
+              }
+            });
+          })
+          .then(response => response.json())
+            .then(token => {
+              /* eslint-disable no-console */
+              console.log(token)
+              /* eslint-disable no-console */
+              //jwt decode needs to be added
+            })
+    .catch(error => {
+       /* eslint-disable no-console */
+        console.log(error)
+        /* eslint-disable no-console */
+    })
+    },
+    onSubmitRegistratiom() {
       var salt = (Math.random()*123456789).toString();
       var hashedpassword =  SHA256(this.password + salt).toString();
-      const response = await fetch('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/api/auth/register', {
+      fetch('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,17 +89,18 @@ export default{
           "email": this.email,
           "salt": salt
         }
-      });
-      let text = await response.text();
-      return text;
-    }
-    let registerResponse = userAction();
-    /* eslint-disable no-console */
-    console.log(this.email)
-    console.log(this.username)
-    console.log(this.password)
-    console.log(registerResponse)
-    /* eslint-disable no-console */
+      })
+      .then(response => response.json())
+      .then(token => {
+        /* eslint-disable no-console */
+        console.log(jwt.decode(token))
+        /* eslint-disable no-console */
+      })
+      .catch(error => {
+        /* eslint-disable no-console */
+        console.log(error)
+        /* eslint-disable no-console */
+      })
     }
   }
 }
@@ -73,6 +121,13 @@ export default{
   -moz-osx-font-smoothing: grayscale;
 
   background-image: radial-gradient(white, white, #f2f2f2);
+}
+
+#form{
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center; 
 }
 
 #title{
