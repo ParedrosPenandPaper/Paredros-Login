@@ -5,7 +5,7 @@
       <input class="panel text-input" type="text" placeholder="email" v-model="email"/> 
       <input class="panel text-input" type="text" placeholder="username" v-model="username"/>
       <input class="panel text-input" type="password" placeholder="password" v-model="password"/>
-      <input class="panel" id="submit-button" type="submit" value="submit" @click="onSubmitRegistratiom"/>
+      <input class="panel" id="submit-button" type="submit" value="submit" @click="onSubmitRegistration"/>
       <button v-on:click='registration = !registration'>Login</button>
     </div>
     <div id="form" v-else-if="!loggedIn&&!registration">
@@ -16,7 +16,10 @@
       <button v-on:click='registration = !registration'>Registration</button>
     </div>
     <div v-else-if="loggedIn">
-      
+       <h1 id="title">Profile</h1>
+       <p>{{email}}</p>
+       <p>{{username}}</p>
+       <button v-on:click='logout'>logout</button>
     </div>
   </div>
 </template>
@@ -38,6 +41,14 @@ export default{
     }
   },
   methods: {
+    logout() {
+      this.email = ''
+      this.username= ''
+      this.password= ''
+      this.loggedIn= false
+      this.token = '' 
+      this.registration= false
+    },
     onSubmitLogin() {
       fetch('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/api/auth/salt', {
         method: 'GET',
@@ -46,38 +57,36 @@ export default{
           "email": this.email
         }
       })
-      .then(response => response.json())
-        .then(salt => {
-          /* eslint-disable no-console */
-          console.log(salt.salt)
-          /* eslint-disable no-console */
-          var hashedpassword =  SHA256(this.password + salt.salt).toString();
-          return hashedpassword;
-        })
-         .then(hashedpassword => {
-            return fetch('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/api/auth/login', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                "hashedpassword": hashedpassword,
-                "email": this.email,
-              }
-            });
-          })
-          .then(response => response.json())
-            .then(token => {
-              /* eslint-disable no-console */
-              console.log(token)
-              /* eslint-disable no-console */
-              //jwt decode needs to be added
-            })
-    .catch(error => {
-       /* eslint-disable no-console */
-        console.log(error)
-        /* eslint-disable no-console */
-    })
+      .then(handleErrors)
+      .then(salt => {
+        var hashedpassword =  SHA256(this.password + salt.salt).toString();
+        return hashedpassword;
+      })
+      .then(hashedpassword => {
+        return fetch('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            "hashedpassword": hashedpassword,
+            "email": this.email,
+          }
+        });
+      })
+      .then(handleErrors)
+      .then(body => {
+        this.token = jwt.decode(body.token)
+        if(this.token != null)
+        {
+          this.loggedIn = true
+          this.username = this.token.username
+          this.email = this.token.email
+        }
+      })
+      .catch(error => {
+        alert(error)
+      })
     },
-    onSubmitRegistratiom() {
+    onSubmitRegistration() {
       var salt = (Math.random()*123456789).toString();
       var hashedpassword =  SHA256(this.password + salt).toString();
       fetch('http://it-projekt19-6.informatik.fh-nuernberg.de:8081/api/auth/register', {
@@ -90,19 +99,27 @@ export default{
           "salt": salt
         }
       })
-      .then(response => response.json())
-      .then(token => {
-        /* eslint-disable no-console */
-        console.log(jwt.decode(token))
-        /* eslint-disable no-console */
+      .then(handleErrors)
+      .then(body => {
+        this.token = jwt.decode(body.token)
+         if(this.token != null)
+          {
+            this.loggedIn = true
+            this.username = this.token.username
+            this.email = this.token.email
+          }
       })
       .catch(error => {
-        /* eslint-disable no-console */
-        console.log(error)
-        /* eslint-disable no-console */
+        alert(error)
       })
     }
   }
+}
+
+async function handleErrors(response) {
+  let responseJson = await response.json();
+  if (!response.ok) throw Error(responseJson.error);
+  return responseJson;
 }
 </script>
 
